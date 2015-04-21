@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2009/04/01/filtering-an-xmllistcollection-using-regular-expressions/ -->
+<nodes>
+    <node Firstname="Name1" Lastname="Last1" />
+    <node Firstname="Name2" Lastname="Last2" />
+    <node Firstname="Name3" Lastname="Last3" />
+    <node Firstname="Name4" Lastname="Last4" />
+    <node Firstname="Name5" Lastname="Last5" />
+    <!-- ... -->
+</nodes>

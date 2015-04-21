@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="up_dw" >
+	
+	<fx:Declarations>
+		<s:NumberFormatter id="numberFormatter" />
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			public var file:FileReference;
+			
+			public function selectFile():void 
+			{
+				file = new FileReference();
+				file.addEventListener(Event.SELECT, fileSelected);
+				file.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, uploadDataComplete);
+				file.addEventListener(Event.COMPLETE, uploadComplete);
+				file.addEventListener(IOErrorEvent.IO_ERROR, handleError);
+				file.browse();
+			}
+			
+			public function handleError(event:IOErrorEvent):void 
+			{
+				status_txt.text = 'ERROR: ' + event.text + '';
+			}
+			public function fileSelected(event:Event):void
+			{
+				file = FileReference(event.target);
+				file_txt.text = file.name;
+				status_txt.text = 'upload file: '+ file.name  + '\n';
+		
+				var request:URLRequest = new URLRequest();
+				request.url = "http://localhost:8080/xampp/user_auth/upload_file.php";
+				file.upload(request);	
+			
+			}
+			
+			public function uploadDataComplete(event:DataEvent):void 
+			{
+				var result:XML = new XML(event.data);
+				status_txt.text += 'Upload Data Complete \n';
+				//status_txt.text += 'RESULT: ' + result.toString()  + '';
+				status_txt.text += 'STATUS: ' + result.status + '\n';
+				status_txt.text += 'MESSAGE: '+ result.message;
+			}
+			
+			public function uploadComplete(event:Event):void 
+			{
+				status_txt.text += 'Upload complete \n';
+
+	}
+		]]>
+		
+	
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:TextInput id="file_txt"/>
+		<s:Button id="select_btn" label="select" click="selectFile();"/>
+		<s:TextArea id="status_txt" width="100%" height="70" fontSize="9"/>
+	</s:VGroup>
+	
+</s:View>

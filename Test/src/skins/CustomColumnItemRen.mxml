@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2010/05/06/setting-a-custom-context-menu-on-a-spark-list-control-item-renderer-in-flex-4/ -->
+<s:ItemRenderer name="CustomColumnItemRen"
+				xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				autoDrawBackground="true"
+				dataChange="dataChangeHandler(event);"
+				click="itemrenderer1_clickHandler(event)">
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" />
+		<s:State name="selected" />
+	</s:states>
+	<s:layout>
+		<s:HorizontalLayout gap="0"
+							paddingLeft="3" paddingRight="3"
+							paddingTop="3" paddingBottom="3"
+							verticalAlign="middle" />
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.formatters.CurrencyFormatter;
+			import mx.events.ItemClickEvent;
+			import flashx.textLayout.events.SelectionEvent;
+			
+		
+			private var today:Date = new Date(); 
+			[Embed("/styles/images/background_down.png")]
+			protected const ICON:Class;
+			
+			protected function itemrenderer1_clickHandler(event:MouseEvent):void
+			{
+				var e:ItemClickEvent = new ItemClickEvent(ItemClickEvent.ITEM_CLICK, true);
+				
+				if (check.selected == true){
+					data.checkselected = 1;
+				}else {
+					data.checkselected = 0;
+				}
+				
+				
+				e.item = data;
+				e.index = itemIndex;
+				data.id_table = e.index;
+				dispatchEvent(e);
+				
+			}
+			
+			protected function dataChangeHandler(evt:Event):void {
+				const currFmt:CurrencyFormatter = new CurrencyFormatter();
+				currFmt.precision = 2;
+				valor_txt.text = String(data.price + "€");
+				data_txt.text = data.data; 
+				descricao_txt.text = String(data.descricao);
+				if (data.isNew == "true") {
+					info_img.source = ICON;
+				}
+				
+				// Create custom context menu. 
+				const cmi:ContextMenuItem = new ContextMenuItem("Copy quote");
+				cmi.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, cmi_menuItemSelect);
+				
+				const cm:ContextMenu = new ContextMenu();
+				cm.hideBuiltInItems();
+				cm.customItems = [cmi];
+				
+				contextMenu = cm;
+			}
+			
+			protected function cmi_menuItemSelect(evt:ContextMenuEvent):void {
+				System.setClipboard(data_txt.text + "\t" + descricao_txt.text + "\t" + valor_txt.text);
+			}
+			
+			
+		]]>
+		
+	</fx:Script>
+	<fx:Declarations>
+		<!-- data format.-->
+		<s:DateTimeFormatter id="data_format" 
+							 dateTimePattern="MMM d, yy"/>
+		
+	</fx:Declarations>
+
+	<s:CheckBox id ="check" width="10%" /> 
+	<s:Label id="data_txt" textAlign="center" fontWeight="bold" maxDisplayedLines="2" width="20%"/>
+	<s:Label id="descricao_txt" textAlign="center" maxDisplayedLines="2" showTruncationTip="true" width="40%" />
+	<s:Label id="valor_txt" textAlign="center" fontWeight="bold" width="20%" />
+	<s:BitmapImage id="info_img" height="10" width="10%"/>
+	
+</s:ItemRenderer>

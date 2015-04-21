@@ -1,0 +1,19 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+.dataGrid
+{
+	header-colors:#f9f9f9, #ebebeb;
+	alternating-item-colors:#ffffff, #ebebeb;
+	roll-over-color:#eaeaea;
+	font-family:"Helvetica Neue";
+	font-size:13px;
+	color:"black";
+	fontSize:"10";
+	textAlign:center;
+	selectionColor:#eaeaea;
+	
+}
+
+

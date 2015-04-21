@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		xmlns:flextras="http://www.flextras.com/mxml"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:rnd="rnd.*"
+		xmlns:skins="skins.*"
+		xmlns:example="services.example.*"
+		xmlns:valueObjects="valueObjects.*"
+		initialize="json_news.send();" title="Login"
+		xmlns:component="org.jbpin.qrcodegen.component.*">
+	
+	<fx:Style source="skins/example.css">
+		
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.adobe.serialization.json.JSONDecoder;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+			import mx.rpc.AsyncResponder;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import flash.display.Sprite;
+			import org.qrcode.QRCode;
+			import flash.display.Bitmap;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import flashx.textLayout.events.SelectionEvent;
+			
+			protected function lst_labelFunc(data:Object):String {
+				return StringUtil.substitute("[{0}]\t{1}", data.symbol, data.name);
+			}
+			
+			[Bindable]public var dataProvider : ArrayCollection = new ArrayCollection([ 
+				{label:'Esclarecimento',data:0},
+				{label:'Reclamar Isenção',data:1},
+				{label:'Outros',data:3}
+			]);
+			[Bindable]public var dataProvider2 : ArrayCollection = new ArrayCollection([ 
+				{idd: "1", data:"11-11-1111", descricao:"Análises Laboratoriais", price:"32.49", isNew:"true"},
+				{idd: "2", data:"11-12-1111", descricao:"Consulta", price:"44.49", isNew:"false"},
+				{idd: "3", data:"11-13-1111", descricao:"Análises Laboratoriais", price:"32.49", isNew:"true"}
+			]);
+			
+			private static const SERVER_URL:String = "http://localhost:8080/xampp/user_auth/";
+			
+			private var myToken:String = "";
+			/*
+			import spark.components.Group;
+			
+			[Bindable]
+			var jsonData:Object;
+			
+			private function init():void {
+				
+				jsonData = com.adobe.serialization.json.JSON.decode(rawData);
+				lblTest.text = jsonData[1].name;
+			}*/
+			private function init():void {
+			
+			/*json_news.cancel();
+			var params:Object = new Object();
+			params.Key = ""; */
+			//json_news.send();
+			
+			//var rawData:String = '[{"name":"John Whish","nickname":"Aliaspooryorik"} , {"name":"John Whish2","nickname":"Aliaspooryorik2"}]';
+				
+			}
+			
+			protected function json_news_faultHandler(event:FaultEvent):void
+			{
+			
+			}
+			
+			protected function json_news_resultHandler(event:ResultEvent):void
+			{
+				var rawData1:Object = event.result;
+				var rawString:String = String(event.result);
+				lblTest.text = rawString ; 
+				var arr:Object = (com.adobe.serialization.json.JSON.decode(rawString) as Object);	
+				
+				var ard:Array = (arr.result as Array); 
+				var dp:ArrayCollection = new ArrayCollection(ard); 
+				lst.dataProvider = dp; 
+				var str:String = arr.result[1].descricao ;
+				
+				/*
+				<s:DataGrid id="news" width="100%" styleName="dataGrid">
+	  				<s:columns>
+		  				<s:ArrayList>
+			  				<s:GridColumn headerText="Name" dataField="name" />
+			  				<s:GridColumn headerText="Nickname" dataField="nickname" />
+		  				</s:ArrayList>	
+	  				</s:columns>
+ 	 			</s:DataGrid>
+				*/
+			}
+			
+			private function resultListener(event:ResultEvent):void {
+				//Alert.show(event.result.toString(), 'Server Response');
+				lblTest.text = event.result.toString();
+				//var object:Object = com.adobe.serialization.json.JSON.decode( event.result.toString() );
+				//lblTest.text = String (object[1].name);
+			} 
+			private function errorListener(event:FaultEvent):void {
+				//Alert.show(event.fault.faultString, 'Error');
+				lblTest.text = event.fault.faultString;
+			} 
+			private function getToken():void {
+				myService.url = SERVER_URL + "get_token.php";
+				var param:Object = {user: username.text, password: password.text};
+				//use an AsyncToken to register a specific listener for result;
+				//I need to proccess the response I get to save the token locally.
+				var token:AsyncToken = myService.send(param);
+				var responder:AsyncResponder = new AsyncResponder(
+					function (event:ResultEvent, token:Object):void {
+						myToken = (event.result as XML)..token[0];
+					},
+					function (event:FaultEvent, token:Object):void {
+						lblTest.text = event.fault.faultString;
+					});
+				token.addResponder(responder);
+			}
+			
+			
+			protected function lst_initializeHandler(event:FlexEvent):void
+			{
+				lst.addEventListener(ItemClickEvent.ITEM_CLICK, lst_itemClickHandler);
+			}
+			
+			private function lst_itemClickHandler(event:ItemClickEvent):void
+			{
+				lblTest.text = String (event.currentTarget.selectedItem.id_table);
+				
+			}
+			
+			
+			protected function button1_clickHandler():void
+			{
+				//navigator.pushView(org.jbpin.qrcodegen.component.TextGenerator);
+				var qr:QRCode = new QRCode();
+				qr.encode("qr code aaaaaa");
+				var bitMap:Bitmap = new Bitmap(qr.bitmapData);
+				ss.source = new Bitmap(qr.bitmapData);
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		
+		<s:HTTPService id="myService" 
+						method="POST"  
+						resultFormat="e4x" 
+						result="resultListener(event)" fault="errorListener(event)" showBusyCursor="true"/>
+		
+		<s:HTTPService id = "json_news"
+					   url = "http://localhost:8080/xampp/example.json"
+					   resultFormat = "text"
+					   useProxy = "false"
+					   fault = "json_news_faultHandler(event)"
+					   result = "json_news_resultHandler(event)"/>
+		
+	</fx:Declarations>
+	
+		
+	
+	<s:VGroup width="100%" height="100%">		
+	
+		
+		<s:BitmapImage id="ss"/> 
+	<s:TextInput id="username" />
+	<s:TextInput id="password" />	
+	
+	<s:Label id="lblTest"/>
+	
+	<s:Button label="Get Token" click="getToken()"/>
+		
+		<s:Button label="Gerar QR-code" click="button1_clickHandler()"/>
+		<s:Button label="Upload" click="{navigator.pushView(up_dw)}"/>
+		<s:Button label="Download" click="{navigator.pushView(download)}"/>
+		
+		<s:HSlider skinClass="skins.MultiSlider" width="100%" snapInterval="0.1" />
+
+		<s:DropDownList id="dropDownList" dataProvider="{this.dataProvider}" width="100%" />  
+	
+		<s:List id="lst"
+				initialize="lst_initializeHandler(event)"
+				itemRenderer="skins.CustomColumnItemRen"
+				width="100%"
+				horizontalCenter="0" verticalCenter="0" styleName="dataGrid">
+			<s:layout>
+				<s:VerticalLayout gap="0"
+								  horizontalAlign="justify"
+								  requestedRowCount="5" />
+			</s:layout>
+		</s:List>
+	
+	</s:VGroup>
+	
+</s:View>

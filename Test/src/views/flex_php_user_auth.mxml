@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" initialize="init()">
+<mx:Script>
+	<![CDATA[
+		import mx.rpc.AsyncResponder;
+		import mx.rpc.AsyncToken;
+		import mx.rpc.events.FaultEvent;
+		import mx.controls.Alert;
+		import mx.rpc.events.ResultEvent;
+		
+		/**
+		 * URL pointing to PHP folder files
+		 */ 
+		private static const SERVER_URL:String = "http://localhost:8080/xampp/user_auth/"	
+		/**
+		 * use to store the token retrieved from the server
+		 */ 
+		private var myToken:String = "";
+		
+		/**
+		 * It gets called when the application finished to load.
+		 * initialize the endpoint value for the RemoteObject
+		 */ 
+		private function init():void {
+			myRPC.endpoint = SERVER_URL + "amfphp/gateway.php";
+		}
+		
+		/**
+		 * Result listenere for HTTPService or RemoteObject.
+		 * Just show the received response in an Alert 
+		 * @param ResultEvent
+		 */  
+		private function resultListener(event:ResultEvent):void {
+			Alert.show(event.result.toString(), 'Server Response');
+		} 
+		
+		/**
+		 * Error handler to be used by the HTTPService and RemoteObject;
+		 * Alert the error message
+		 * @param FaultEvent
+		 */ 
+		private function errorListener(event:FaultEvent):void {
+			Alert.show(event.fault.faultString, 'Error');
+		} 
+		
+		/**
+		 * HTTPService request to register the user in Session
+		 */ 
+		private function makeRequestToAuth():void {
+			myService.url = SERVER_URL + "auth.php";
+			myService.send();
+		}
+		/**
+		 * HTTPService request to a PHP file that needs authentication.
+		 * If you haven't previously made a request to <code>makeRequestToAuth()</code> 
+		 * you should get a message stating the user needs to be authenticated 
+		 */ 
+		private function makeRequestAuth():void {
+			myService.url = SERVER_URL + "some.php";	
+			myService.send();
+		}
+		/**
+		 * HTTPService request to a PHP file that authenticates the user against a LDAP server
+		 */ 
+		private function makeRequestLDAP():void {
+			myService.url = SERVER_URL + "ldap_auth.php";
+			var param:Object = {user: "some user", password: "some password"};
+			myService.send(param);
+		}
+		/**
+		 * HTTPService request to a PHP file that authenticates the user and return a token
+		 */ 
+		private function getToken():void {
+			myService.url = SERVER_URL + "get_token.php";
+			var param:Object = {user: "some user", password: "some password"};
+			//use an AsyncToken to register a specific listener for result;
+			//I need to proccess the response I get to save the token locally.
+			var token:AsyncToken = myService.send(param);
+			var responder:AsyncResponder = new AsyncResponder(
+					function (event:ResultEvent, token:Object):void {
+						myToken = (event.result as XML)..token[0];
+					},
+					function (event:FaultEvent, token:Object):void {
+						Alert.show(event.fault.faultString, "Error");
+					});
+			token.addResponder(responder);
+		}
+		
+		/**
+		 * HTTPService request to another PHP file that authenticates based on the token received
+		 */ 
+		private function authenticateWithToken():void {
+			myService.url = SERVER_URL + "auth_with_token.php";
+			var param:Object = {token: this.myToken};
+			myService.send(param);
+		}
+	]]>
+</mx:Script>
+	<mx:HTTPService id="myService" 
+		method="POST" 
+		resultFormat="e4x" 
+		result="resultListener(event)" fault="errorListener(event)" showBusyCursor="true"/>
+	
+	<mx:RemoteObject id="myRPC" 
+		source="MyService" 
+		destination = "MyService" 
+		result="resultListener(event)" fault="errorListener(event)" showBusyCursor="true">
+		<mx:method name="authenticateUser">
+			<mx:arguments>
+				<name>admin</name>
+				<password>pass</password>
+			</mx:arguments>
+		</mx:method>
+		<mx:method name="methodThatNeedsAuthUser"/>
+	</mx:RemoteObject>
+	
+	<mx:VBox x="20" y="20">
+		<mx:VBox x="167" y="134" width="400">
+			<mx:Label text="Using HTTPService" fontWeight="bold" fontSize="12"/>
+			<mx:Button label="Make Request to authenticate!" click="makeRequestToAuth()"/>
+			<mx:Button label="Make Request to another page which needs authentication!" click="makeRequestAuth()"/>
+			<mx:Button label="Authenticate against LDAP" click="makeRequestLDAP()"/>
+		</mx:VBox>
+		<mx:Spacer height="15"/>
+		<mx:VBox>
+			<mx:Label text="Using HTTPService and Token" fontWeight="bold" fontSize="12"/>
+			<mx:Button label="Make Request to authenticate!" click="getToken()"/>
+			<mx:Button label="Make Request to another page which needs a token!" click="authenticateWithToken()"/>
+		</mx:VBox>
+		<mx:Spacer height="15"/>
+		<mx:VBox x="167" y="312" height="158" width="400">
+			<mx:Label text="Using RemoteObject and AMFPHP" fontWeight="bold" fontSize="12"/>
+			<mx:Button label="Authenticate using a RPC call" click="myRPC.authenticateUser()"/>
+			<mx:Button label="RPC call to a method that required Authenticated User" click="myRPC.methodThatNeedsAuthUser()"/>
+		</mx:VBox>
+	</mx:VBox>
+</mx:Application>
